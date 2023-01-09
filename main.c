@@ -1,94 +1,124 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 #include <unistd.h>
 #include <ncurses.h>
 
 typedef struct Snake {
-    int x;
-    int y;
-    int dirX;
-    int dirY;
-} Snake ;
+  int x;
+  int y;
+  int dirX;
+  int dirY;
+} Snake;
+
+typedef struct Fruit {
+  int x;
+  int y;
+} Fruit;
 
 Snake snake;
-WINDOW *board;
+Fruit fruit;
 
-void moveSnake() {
-    snake.x += snake.dirX;
-    snake.y += snake.dirY;
+void spawn_fruit() {
+  fruit.x = rand() % COLS - 2;
+  fruit.y = rand() % LINES - 2;
+
+  mvprintw(fruit.y, fruit.x, "SDJFAFAK");
+  refresh();
+  //wrefresh(board);
 }
 
-void drawBoard() {
-    clear();
-    
-    mvprintw(snake.y, snake.x, "*");
+void moveSnake() {
+  snake.x += snake.dirX;
+  snake.y += snake.dirY;
+}
 
-    refresh();
+void draw_snake() {
+  clear();
+  
+  attron(COLOR_PAIR(1));
+  mvprintw(snake.y, snake.x, "*");
+  attroff(COLOR_PAIR(1));
+
+  refresh();
 }
 
 int update() {
-    int ch;
+  int ch;
 
-    switch (ch = getch())
-    {
+  switch (ch = getch()) {
     case KEY_UP:
-        if (snake.dirY == 1)
-            break;
-        snake.dirX = 0;
-        snake.dirY = -1;
+      if (snake.dirY == 1)
         break;
+      snake.dirX = 0;
+      snake.dirY = -1;
+      break;
     case KEY_DOWN:
-        if (snake.dirY == -1)
-            break;
-        snake.dirX = 0;
-        snake.dirY = 1;
+      if (snake.dirY == -1)
         break;
+      snake.dirX = 0;
+      snake.dirY = 1;
+      break;
     case KEY_LEFT:
-        if (snake.dirX == 1)
-            break;
-        snake.dirX = -1;
-        snake.dirY = 0;
+      if (snake.dirX == 1)
         break;
+      snake.dirX = -1;
+      snake.dirY = 0;
+      break;
     case KEY_RIGHT:
-        if (snake.dirX == -1)
-            break;
-        snake.dirX = 1;
-        snake.dirY = 0;
+      if (snake.dirX == -1)
         break;
+      snake.dirX = 1;
+      snake.dirY = 0;
+      break;
     case (int)'q':
-        return 1;
+      return 1;
     case 27:
-        return 1;
+      return 1;
     default:
-        break;
-    }
+      break;
+  }
 
-    moveSnake();
-    drawBoard();
+  moveSnake();
+  draw_snake();
 
-    usleep(1000000 * 1);
+  usleep(100000 * 0.5); // just a sleep for a 0.5 second
 
-    return 0;
+  return 0;
+}
+
+void init() {
+  srand(time(NULL));
+
+  //board = newwin(30, 30, 0, 0);
+  //box(board, 1, 1);
+  refresh();
+  //wrefresh(board);
+
+  spawn_fruit();
+
+  snake.x = (int)COLS / 2;
+  snake.y = (int)LINES / 2;
+
+  init_pair(1, COLOR_GREEN, COLOR_GREEN);
 }
 
 int main() {
-    initscr();
-    curs_set(0);
-    noecho();
-    nodelay(stdscr, true);
-    keypad(stdscr, TRUE);
-    start_color();
-    use_default_colors();
+  initscr();
+  /*curs_set(0);
+  noecho();
+  nodelay(stdscr, true);
+  keypad(stdscr, true);
+  start_color();
+  use_default_colors();*/
 
-    board = newwin(30, 30, 0, 0);
+  WINDOW *suck = newwin(30, 30, 1, 1);
+  box(suck, '*', '*');
+  touchwin(suck);
+  wrefresh(suck);
 
-    snake.x = 15;
-    snake.y = 15;
+  getch();
+  endwin();
 
-    while (update() == 0);
-
-    delwin(board);
-
-    endwin();
-
-    return 0;
+  return 0;
 }
